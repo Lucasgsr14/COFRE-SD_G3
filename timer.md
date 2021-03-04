@@ -57,5 +57,3 @@ the SBI, CBI, SBIS, and SBIC instructions
 For I/O registers located in extended I/O map, “IN”, “OUT”, “SBIS”, “SBIC”, “CBI”, and “SBI” instructions must
 be replaced with instructions that allow access to extended I/O. Typically “LDS” and “STS” combined with
 “SBRS”, “SBRC”, “SBR”, and “CBR”.
-
-https://courses.cs.washington.edu/courses/csep567/10wi/lectures/Lecture7.pdf
