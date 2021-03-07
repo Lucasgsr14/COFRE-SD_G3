@@ -1,40 +1,51 @@
 # CÓDIGO ASSEMBLY COMENTADO SOBRE O TIMER 16 BITS DO uC AVR ATMEGA328P
 
 ```
+;
+; timer2.asm
+;
+; Created: 07/03/2021 10:07:57
+; Author : lucas
+;
+
+
+;
+; timer.asm
+;
+; Created: 06/03/2021 14:42:28
+; Author : lucas
+;	
+
+;modo timer normal
+; Replace with your application code
 .org 0x00    ; seta o início da memoria de instrução  
-  rjmp main 
-```
-
-![image](https://user-images.githubusercontent.com/32770973/109974639-88830480-7cd8-11eb-827a-2021ad9d82b3.png)
-
-```
-.org 0x16    ; definição de onde pular na interrupção
-  rjmp interrupcao
+	rjmp main 
 
 main:
-  ldi r16, (1 << WGM12)   ; carrega o registrador r16 setando o bit WGM12
-  out TCCR1B, r16         ; carrega o registrador TCCR1B com o bit WGM12 setado (modo CTC)
-  ldi r17, 2              ; carrega o registrador r17 com 2
-  out OCR1A, r17          ; carrega o registrador OCR1A com 2 (comparado com o timer)
-  ldi r18, (1 << OCIE1A)  ; carrega o registrador r18 setando o bit OCIE1A
-  out TIMSK1, r18         ; carrega o registrador TIMSK1 com o bit OCIE1A setado (sinaliza comparação do timer com o registrador OCR1A)
-  sei                     ; habilita os eventos de interrupção
-  ldi r20, 0x01           ; setando um bit para ser usado de habilitador do loop infinito
-  ldi r19, (1 << CS12) | (1 << CS10) ; carrega o registrador r19 setando os bits CS12 e CS10
-  out TCCR1B, r19         ; carrega o registrador TIMSK1 com os bits CS12 e CS10 setados
-  rjmp infinito           ; vai para a função de loop infinito até que seja dado clear no bit do r20
+	ldi r17, 10				; carrega o registrador r17 com o número a ser comparado
+	ldi r20, 255			; setando o registrador 20 para ser usado como habilitador do loop infinito
+	ldi r19, (1 << CS10)	; carrega o registrador r19 setando os bits CS10 (modo normal)
+	sts TCCR1B, r19         ; carrega o registrador TIMSK1 com os bits CS10 setado (sem divisão por prescaler)(só para simulação)
+	rjmp infinito           ; vai para a função de loop infinito até que seja dado clear no bit do r20
   
 infinito:
-  sbrs r20, 0x01          ; checa se o bit esta setado
-  rjmp main               ; salto relativo para a função main
-  nop                     ; gasta um ciclo de máquina
-  rjmp infinito           ; salto relativo para a função infinito
+	sbrs r20, 0b00000001    ; checa se o habilitador do loop esta setado
+	rjmp main               ; salto relativo para a função main caso não esteja
+	lds r15,TCNT1L			; carrega o low do contador
+	lds r16,TCNT1H			; carrega o high do contador
+	cp r15, r17				; nesse caso compara o high com 10
+	brge TIM1_COMPA			; vai para a branch TIM1_COMPA caso a comparação seja maior igual
+	rjmp infinito           ; salto relativo para a função infinito se a comparação for menor
 
-interrupcao:
-  cbr TCCR1B, CS12        ; clear no bit CS12
-  cbr TCCR1B, CS10        ; clear no bit CS10
-  cbr r20, 0x01           ; clear no bit de loop infinito
-  reti                    ; retorno da interrupção
+TIM1_COMPA:
+	ldi r19, (0 << CS10)	; carrega a parada da contagem
+	sts TCCR1B, r19			; para a contagem
+	ldi r22, 0x00			; carrega o zero
+	sts TCNT1L, r22			; zera registrador low do contador
+	sts TCNT1H, r22			; zera registrador high do contador
+	ldi r20, 0				; clear no bit de loop infinito
+	rjmp infinito           ; retorno da interrupção
+
 ```  
 
 # Observações
